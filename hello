@@ -1,0 +1,194 @@
+package seleminumTest.TestMain;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.interactions.Actions;
+import org.testng.Reporter;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+public class TestExcel {
+	public static XSSFWorkbook workbook1 ;
+	public static XSSFWorkbook workbook2 ;
+	public  XSSFSheet sheet1;
+	public  XSSFSheet sheet2;	
+	public static XSSFRow row1;
+	public static XSSFRow row2;
+	public static String cell1;
+	public static String cell2;
+	public static XSSFCell c1;
+	public static XSSFCell c2;
+	public static boolean res=false;
+	public String str1;
+	public String temp;
+	public static String str2;
+	Row rl=null;
+	FileInputStream excellFile1;
+	
+	List<String> list;
+	
+	WebDriver driver;
+	WebElement ele;
+	Actions act;
+	
+	public String Xpath(String sc)
+	{
+		return driver.findElement(By.xpath(sc)).getText();
+	}
+	
+	
+	@SuppressWarnings("deprecation")
+	@BeforeSuite
+	public void setUp()throws InterruptedException, IOException,FileNotFoundException {
+		
+		// excel setup
+		
+		try
+        {
+             excellFile1 = new FileInputStream(new File("C:\\data\\Allstste\\sampledata.xlsx"));
+           
+            @SuppressWarnings("resource")
+			XSSFWorkbook workbook1 = new XSSFWorkbook(excellFile1);         
+          //  workbook1=(XSSFWorkbook) WorkbookFactory.create(excellFile1);
+            XSSFSheet sheet1 = workbook1.getSheetAt(0);
+                       
+            int firstRow1 = sheet1.getFirstRowNum();
+            int lastRow1 = sheet1.getLastRowNum();   
+            
+            System.out.println(firstRow1 +" " + lastRow1);          
+            boolean equaldata1=true;
+            boolean rowcheck=true;
+            
+            for(int i=firstRow1; i <= lastRow1; i++)
+            {
+               XSSFRow row1 = sheet1.getRow(i);                
+                int firstCell1 = row1.getFirstCellNum();
+                int lastCell1 = row1.getLastCellNum(); 
+                for(int k=firstCell1;k>=lastCell1;k++) {
+                	XSSFCell c1 = row1.getCell(k);                	
+                	c1.setCellType(CellType.STRING);
+                	               	
+                }               
+            }
+               
+                   
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }    
+		
+		
+		
+		// browser setup
+		
+		EdgeOptions options = new EdgeOptions();
+
+		options.addArguments("--remote-allow-origins=*");
+		WebDriverManager.edgedriver().setup();
+		driver = new EdgeDriver(options);
+		driver.manage().window().maximize();
+		//driver.manage().timeouts().implicitlyWait(1, TimeUnit.SECONDS);
+		driver.get("https://allstate.ca");
+		Reporter.log("Edge browser is launched");
+		
+		
+		//action class
+		act = new Actions(driver);
+   }
+	
+	@Test(priority=1)
+	public void Auto() {
+		list=new ArrayList<String>();
+		list.add("//a[@id=\'mainnav_ctl00_rptNavigationLevel1_rptNavigationLevel2_0_lnkNavPaneSubnav_0\']");
+		list.add("//a[@id=\'mainnav_ctl00_rptNavigationLevel1_rptNavigationLevel2_0_lnkNavPaneSubnav_1\']");
+		list.add("//a[@id=\'mainnav_ctl00_rptNavigationLevel1_rptNavigationLevel2_0_lnkNavPaneSubnav_2\']");
+		list.add("//a[@id=\'mainnav_ctl00_rptNavigationLevel1_rptNavigationLevel2_0_lnkNavPaneSubnav_3\']");
+	       //str1=driver.findElement(By.xpath("//a[@id=\'mainnav_ctl00_rptNavigationLevel1_rptNavigationLevel2_0_lnkNavPaneSubnav_0\']")).getText();
+
+		
+	}
+	
+	
+	@Test(priority=2)
+	public void headingText()throws InterruptedException, IOException,FileNotFoundException{
+		try {
+			 excellFile1 = new FileInputStream(new File("C:\\data\\Allstste\\sampledata.xlsx"));
+	           
+	            @SuppressWarnings("resource")
+				XSSFWorkbook workbook1 = new XSSFWorkbook(excellFile1); 
+			sheet1 = workbook1.getSheetAt(0);
+		for(int i = 0; i < list.size(); i++)
+		{
+			
+		         
+				ele=driver.findElement(By.xpath("//a[@id=\'mainnav_ctl00_rptNavigationLevel1_lnkNavPane_0\']"));
+				act.moveToElement(ele).perform();	
+				temp=list.get(i);
+				System.out.println(temp);
+				str1=driver.findElement(By.xpath(temp)).getText();
+		        System.out.println(str1);  
+
+				str2=sheet1.getRow(i).getCell(0).getStringCellValue().trim();
+		        System.out.println(str2);  
+		     	       
+		      
+			
+			if(str1.equalsIgnoreCase(str2))
+			{
+				System.out.println(str1+" equal");
+			}
+			else
+			{
+				System.out.println(str1+" and  "+ str2 +" Not  equal");
+			}
+		}
+		}
+	 
+    catch (Exception e)
+    {
+        e.printStackTrace();
+    } 
+			
+		
+			 
+	}
+	
+	@AfterSuite
+	public void tearDown() throws InterruptedException
+	{
+		try {
+		 excellFile1.close();
+		driver.quit();
+		}
+		catch(Exception e)
+        {
+            e.printStackTrace();
+        }    
+	}
+	 
+	
+}
+
+
+
